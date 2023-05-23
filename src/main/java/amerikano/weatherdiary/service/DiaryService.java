@@ -1,6 +1,5 @@
 package amerikano.weatherdiary.service;
 
-import amerikano.weatherdiary.WeatherdiaryApplication;
 import amerikano.weatherdiary.domain.DateWeather;
 import amerikano.weatherdiary.domain.Diary;
 import amerikano.weatherdiary.error.InvalidDate;
@@ -10,8 +9,6 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -37,8 +34,6 @@ public class DiaryService {
     private final DiaryRepository diaryRepository;
     private final DateWeatherRepository dateWeatherRepository;
 
-//    private static final Logger logger = LoggerFactory.getLogger(WeatherdiaryApplication.class);
-
     public DiaryService(DiaryRepository diaryRepository,
                         DateWeatherRepository dateWeatherRepository) {
         this.diaryRepository = diaryRepository;
@@ -49,7 +44,6 @@ public class DiaryService {
     // phantom read 문제까지 방지하지만 속도는 4단계 중 가장 느림
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void createDiary(LocalDate date, String text) {
-//        logger.info("Started to create diary");
         // 미리 저장한 날씨 데이터 or 없으면 API를 호출해 바로 가져오기
         DateWeather dateWeather = getDateWeather(date);
 
@@ -60,9 +54,6 @@ public class DiaryService {
         nowDiary.setDate(date);
 
         diaryRepository.save(nowDiary);
-//        logger.info("Completed to create diary");
-//        logger.error();
-//        logger.warn();
     }
 
     private DateWeather getDateWeather (LocalDate date) {
@@ -78,7 +69,6 @@ public class DiaryService {
 
     @Transactional(readOnly = true)
     public List<Diary> readDiary(LocalDate date) {
-//        logger.debug("Read diary");
         if(date.isAfter(LocalDate.ofYearDay(3050, 1))) {
             throw new InvalidDate("InvalidDate Error");
         }
@@ -167,6 +157,9 @@ public class DiaryService {
         return dateWeather;
     }
 
+    /**
+     * 매일 새벽 1시에 날씨 데이터 저장
+     */
     @Transactional
     @Scheduled(cron = "0 0 1 * * *")
     public void saveWeatherDate() {
